@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const bcrypt = require("bcrypt")
+const { generateAccessToken } = require("../utils/customFunction");
 
 const register = async (req, res, next) => {
   const { fullname, username, password } = req.body;
@@ -19,17 +20,23 @@ const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name: fullname,
         username: username,
         password: hashedPassword,
+        role: "user",
       },
     });
 
+    const accessToken = generateAccessToken(user);
+
     return res.status(200).json({
       message: "User created successfully",
+      user: user,
+      accessToken: accessToken
     });
+    
   } catch (err) {
     console.log(err);
   }
