@@ -1,19 +1,17 @@
 const { Pool } = require("pg");
-require('dotenv').config(); // Ensure your .env is properly set up
+require("dotenv").config(); // Load .env variables
 
-const Client = new Pool({
-    connectionString: process.env.DATABASE_URL, // Ensure this URL is set in your .env file
-    ssl: {
-        rejectUnauthorized: false, // This is needed for hosted services like Heroku
-    },
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false }
 });
 
-Client.connect()
-    .then(() => console.log("Connected to DB"))
-    .catch(err => {
-        console.error("Connection error", err);
-        // Optionally, you can exit process if connection fails
-        process.exit(1);
-    });
+pool.on("connect", () => {
+    console.log("Connected to PostgreSQL");
+});
 
-module.exports = Client;
+pool.on("error", (err) => {
+    console.error("Unexpected database error", err);
+});
+
+module.exports = pool; // No need to manually connect

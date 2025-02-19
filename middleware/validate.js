@@ -5,7 +5,7 @@ const ExpressError = require("../utils/expressError")
 const validateCreateRequest = (requestType) => {
   return (req, res, next) => {
     let error;
-
+    console.log(req.body)
     switch (requestType) {
       case "user":
         error = signupSchema.validate(req.body).error;

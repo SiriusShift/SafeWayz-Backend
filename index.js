@@ -19,6 +19,6 @@ app.get("/", (req, res) => {
 runRouters(app);
 
 const port = 5000; // Fallback to 3000 if not set
-const host = process.env.HOST
+const host = process.env.URL
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-app.listen(port, host, () => console.log(`Server running on port ${port}`));
+app.listen(port, host, () => console.log(`Server running on port ${port} and host ${host}`));
