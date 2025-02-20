@@ -42,6 +42,39 @@ const register = async (req, res, next) => {
   }
 };
 
+const login = async (req, res, next) => {
+  const { username, password } = req.body;
+  try{
+    const findUser = await prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+    });
+    if (!findUser) {
+      return res.status(400).json({
+        message: "User does not exist",
+      });
+    }
+    const isPasswordValid = await bcrypt.compare(password, findUser.password);
+    if (isPasswordValid) {
+      const accessToken = generateAccessToken(findUser);
+      return res.status(200).json({
+        message: "User logged in successfully",
+        user: findUser,
+        accessToken: accessToken
+      });
+    }
+    else{
+      return res.status(400).json({
+        message: "Username or password is incorrect",
+      });
+    }
+  }catch(err){
+    console.log(err)
+  }
+}
+
 module.exports = {
-    register
+    register,
+    login
 }
