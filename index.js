@@ -4,6 +4,7 @@ const { runRouters } = require("./routes");
 const session = require("express-session");
 const { sessionConfig } = require("./config/sessionConfig");
 require("./config/runDb");
+
 // require("dotenv").config();
 
 const app = express();
@@ -20,5 +21,5 @@ runRouters(app);
 
 const port = process.env.PORT || 5000; // Fallback to 3000 if not set
 // const host = process.env.URL
-app.listen(port, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => console.log(`Server running on port ${port}`));
 // app.listen(port, host, () => console.log(`Server running on port ${port} and host ${host}`));
