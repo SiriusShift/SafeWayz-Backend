@@ -3,8 +3,9 @@ require("dotenv").config(); // Load .env variables
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false }
-});
+    ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes("localhost")
+    ? false
+    : { rejectUnauthorized: false }});
 
 pool.on("connect", () => {
     console.log("Connected to PostgreSQL");
