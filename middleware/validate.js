@@ -1,7 +1,10 @@
 require("dotenv").config();
 const { signupSchema } = require("../schema/user");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 const {decryptString} = require("../utils/customFunction")
 const ExpressError = require("../utils/expressError")
+const jwt = require('jsonwebtoken');
 const validateCreateRequest = (requestType) => {
   return (req, res, next) => {
     let error;
@@ -23,6 +26,43 @@ const validateCreateRequest = (requestType) => {
   };
 };
 
+const authenticateToken = async (req,res,next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  console.log(token);
+
+  if(!token){
+    return res.status(401).json({ message: "Access denied. No token provided." });
+  }
+
+  try{
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded);
+
+    const storedToken = await prisma.accessToken.findFirst({
+      where: {
+        userId: decoded.id,
+        tokenHash: token
+      },
+    });
+
+    console.log("test");
+
+
+    if(!storedToken){
+      return res.status(403).json({messag: "Invalid or expired token.!"});
+    }
+
+    req.user = decoded 
+    req.accessToken = token;
+    next();
+  }catch(err){
+    console.log(err);
+    return res.status(403).json({ message: 'Invalid or expired token.' });
+  }
+}
+
 module.exports = {
-    validateCreateRequest
+    validateCreateRequest,
+    authenticateToken
 }
