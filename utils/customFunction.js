@@ -20,11 +20,14 @@ const encryptString = (data) => {
 };
 
 const generateAccessToken = (user) => {
-  return jwt.sign({id: user.id, username: user.username, role: user.role}, process.env.JWT_SECRET, { expiresIn: '1d'})
-}
+  return jwt.sign(
+    { id: user.id, username: user.username, role: user.role },
+    process.env.JWT_SECRET
+  );
+};
 
 module.exports = {
   decryptString,
   encryptString,
-  generateAccessToken
+  generateAccessToken,
 };
