@@ -29,7 +29,6 @@ const validateCreateRequest = (requestType) => {
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  console.log(token);
 
   if (!token) {
     return res
@@ -38,9 +37,11 @@ const authenticateToken = async (req, res, next) => {
   }
 
   try {
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log("decoded", decoded);
 
+    // Check token in DB
     const storedToken = await prisma.accessToken.findFirst({
       where: {
         userId: decoded.id,
@@ -48,17 +49,20 @@ const authenticateToken = async (req, res, next) => {
       },
     });
 
-    console.log("test");
-
     if (!storedToken) {
-      return res.status(403).json({ messag: "Invalid or expired token.!" });
+      return res.status(403).json({ message: "Invalid token." });
     }
 
+    // Attach decoded user data to request
     req.user = decoded;
     req.accessToken = token;
+
+    // Proceed to next middleware/route handler
     next();
   } catch (err) {
-    console.log(err);
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token has expired" });
+    }
     return res.status(403).json({ message: "Invalid or expired token." });
   }
 };

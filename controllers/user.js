@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
 const { generateAccessToken } = require("../utils/customFunction");
 
 const register = async (req, res, next) => {
@@ -11,7 +11,7 @@ const register = async (req, res, next) => {
         username: username,
       },
     });
-    console.log(findUser)
+    console.log(findUser);
     if (findUser) {
       return res.status(400).json({
         message: "User already exists",
@@ -41,9 +41,8 @@ const register = async (req, res, next) => {
     return res.status(200).json({
       message: "User created successfully",
       user: user,
-      accessToken: accessToken
+      accessToken: accessToken,
     });
-    
   } catch (err) {
     console.log(err);
   }
@@ -51,7 +50,7 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   const { username, password } = req.body;
-  try{
+  try {
     const findUser = await prisma.user.findUnique({
       where: {
         username: username,
@@ -67,40 +66,39 @@ const login = async (req, res, next) => {
       const accessToken = generateAccessToken(findUser);
       const existingSession = prisma.accessToken.findFirst({
         data: {
-          userId: findUser.id
-        }
-      })
-      if(existingSession){
+          userId: findUser.id,
+        },
+      });
+      if (existingSession) {
         await prisma.accessToken.deleteMany({
           where: {
-            userId: findUser.id
-          }
-        })
+            userId: findUser.id,
+          },
+        });
       }
       await prisma.accessToken.create({
         data: {
           userId: findUser.id,
           tokenHash: accessToken,
         },
-      })
+      });
 
-      req.user = findUser
-      
+      req.user = findUser;
+
       return res.status(200).json({
         message: "User logged in successfully",
         user: findUser,
-        accessToken: accessToken
+        accessToken: accessToken,
       });
-    }
-    else{
+    } else {
       return res.status(400).json({
         message: "Username or password is incorrect",
       });
     }
-  }catch(err){
-    console.log(err)
+  } catch (err) {
+    console.log(err);
   }
-}
+};
 
 const logout = async (req, res, next) => {
   try {
@@ -111,16 +109,16 @@ const logout = async (req, res, next) => {
       },
     });
     return res.status(200).json({
-      message: 'User logged out successfully',
+      message: "User logged out successfully",
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ message: 'Something went wrong.' });
+    return res.status(500).json({ message: "Something went wrong." });
   }
 };
 
 module.exports = {
-    register,
-    login,
-    logout
-}
+  register,
+  login,
+  logout,
+};
