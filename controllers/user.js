@@ -196,6 +196,29 @@ const sendResetPasswordCode = async (req, res, next) => {
   }
 };
 
+const resetPassword = async (req, res, next) => {
+  const {code, password} = req.body
+  try{
+    const resetToken = await prisma.resetToken.findFirst({
+      where: {
+        token: code
+      }
+    })
+    if(!resetToken){
+      return res.status(400).json({
+        message: "Code is invalid or has expired"
+      })
+    }
+    if(Date.now() > resetToken.expiresAt){
+      return res.status(400).json({
+        message: "Code has expired"
+      })
+    }
+  }catch(err){
+    console.log(err)
+  }
+};
+
 module.exports = {
   register,
   login,
