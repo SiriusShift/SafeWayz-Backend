@@ -6,6 +6,7 @@ const signupSchema = Joi.object({
     email: Joi.string().email().required(),
     username: Joi.string().required(),
     password: Joi.string().required().min(8),
+    code: Joi.string().required()
 })
 
 module.exports = {

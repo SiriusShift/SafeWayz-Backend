@@ -43,3 +43,11 @@ model ResetToken {
   @@index([userId]) // Index for faster lookup
   @@index([token])
 }
+
+model VerifyToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

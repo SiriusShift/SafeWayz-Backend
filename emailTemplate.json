@@ -1,0 +1,8 @@
+{
+  "Template": {
+    "TemplateName": "PathAlertPasswordReset",
+    "SubjectPart": "Reset Your Password for Path Alert",
+    "HtmlPart": "<h1>Reset Your Password</h1><p>It seems you requested a password reset. Use the following code to reset your password:</p><h2>{{reset_code}}</h2><p>If you didn’t request a password reset, please ignore this email.</p>",
+    "TextPart": "Reset Your Password\n\nIt seems you requested a password reset. Use the following code to reset your password: {{reset_code}}\n\nIf you didn’t request a password reset, please ignore this email."
+  }
+}
