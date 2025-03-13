@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const { generateAccessToken } = require("../utils/customFunction");
 const { Resend } = require("resend");
 const crypto = require("crypto");
+const {sendEmail} = require("../services/awsSES");
 
 const validateRegister = async (req, res, next) => {
   const { username, email } = req.body;
@@ -47,22 +48,25 @@ const validateRegister = async (req, res, next) => {
     });
 
     // Send email via Resend
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
-      subject: "Your Verification Code",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2 style="color: #333;">Your Verification Code</h2>
-          <p style="font-size: 16px; color: #555;">Use the following code to proceed:</p>
-          <p style="font-size: 28px; font-weight: bold; color: #000; letter-spacing: 4px; text-align: center;">${otp}</p>
-          <p style="font-size: 14px; color: #777;">This code is valid for the next 10 minutes. If you didn’t request this code, please ignore this email.</p>
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
-          <p style="font-size: 12px; color: #888;">Thanks,<br/>PathAlert Team</p>
-        </div>
-      `,
-    });
+    // const resend = new Resend(process.env.RESEND_API_KEY);
+    // await resend.emails.send({
+    //   from: "onboarding@resend.dev",
+    //   to: email,
+    //   subject: "Your Verification Code",
+    //   html: `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+    //       <h2 style="color: #333;">Your Verification Code</h2>
+    //       <p style="font-size: 16px; color: #555;">Use the following code to proceed:</p>
+    //       <p style="font-size: 28px; font-weight: bold; color: #000; letter-spacing: 4px; text-align: center;">${otp}</p>
+    //       <p style="font-size: 14px; color: #777;">This code is valid for the next 10 minutes. If you didn’t request this code, please ignore this email.</p>
+    //       <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
+    //       <p style="font-size: 12px; color: #888;">Thanks,<br/>PathAlert Team</p>
+    //     </div>
+    //   `,
+    // });
+
+    sendEmail(req.body.email, otp, "Your Verification Code");
+
 
     res.status(200).json({ message: "OTP code sent successfully." });
 
@@ -255,24 +259,23 @@ const sendResetPasswordCode = async (req, res, next) => {
       },
     });
 
-    resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: "lagmanmarquez@gmail.com",
-      subject: "Your OTP Code",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2 style="color: #333;">Your OTP Code</h2>
-          <p style="font-size: 16px; color: #555;">Use the following OTP code to proceed:</p>
-          <p style="font-size: 28px; font-weight: bold; color: #000; letter-spacing: 4px; text-align: center;">${otp}</p>
-          <p style="font-size: 14px; color: #777;">This code is valid for the next 10 minutes. If you didn’t request this code, please ignore this email.</p>
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
-          <p style="font-size: 12px; color: #888;">Thanks,<br/>PathAlert Team</p>
-        </div>
-      `,
-    });
+    // resend.emails.send({
+    //   from: "onboarding@resend.dev",
+    //   to: "lagmanmarquez@gmail.com",
+    //   subject: "Your OTP Code",
+    //   html: `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+    //       <h2 style="color: #333;">Your OTP Code</h2>
+    //       <p style="font-size: 16px; color: #555;">Use the following OTP code to proceed:</p>
+    //       <p style="font-size: 28px; font-weight: bold; color: #000; letter-spacing: 4px; text-align: center;">${otp}</p>
+    //       <p style="font-size: 14px; color: #777;">This code is valid for the next 10 minutes. If you didn’t request this code, please ignore this email.</p>
+    //       <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
+    //       <p style="font-size: 12px; color: #888;">Thanks,<br/>PathAlert Team</p>
+    //     </div>
+    //   `,
+    // });
 
-    // sendEmail(req.body.email, { code: otp }, "PathAlertPasswordReset");
-
+    sendEmail(req.body.email, otp, "Your Reset Code");
     res.status(200).json({ message: "OTP code sent successfully." });
   } catch (err) {
     console.log(err);
