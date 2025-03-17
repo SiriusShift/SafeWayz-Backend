@@ -42,7 +42,7 @@ const authenticateToken = async (req, res, next) => {
     console.log("decoded", decoded);
 
     // Check token in DB
-    const storedToken = await prisma.accessToken.findFirst({
+    const storedToken = await prisma.accessTokens.findFirst({
       where: {
         userId: decoded.id,
         tokenHash: token,
@@ -60,6 +60,7 @@ const authenticateToken = async (req, res, next) => {
     // Proceed to next middleware/route handler
     next();
   } catch (err) {
+    console.log(err);
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({ message: "Token has expired" });
     }

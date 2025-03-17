@@ -34,7 +34,7 @@ const sendEmail = async (email, otp, subject) => {
 
 // Dummy template compiler (replace with your logic)
 const compileTemplate = (otp) => {
-    console.log(otp)
+  console.log(otp);
   return `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
           <h2 style="color: #333;">Your OTP Code</h2>

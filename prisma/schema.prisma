@@ -10,44 +10,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AccessToken {
+model AccessTokens {
   id        Int      @id @default(autoincrement()) // Unique ID
   tokenHash String   @unique // Hashed refresh token
   userId    Int      @unique // Foreign key linking to User model
   createdAt DateTime @default(now()) // Timestamp
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // One-to-One relation with User
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade) // One-to-One relation with User
 }
 
-model User {
-  id           Int           @id @default(autoincrement())
+model Users {
+  id           Int            @id @default(autoincrement())
   name         String
-  username     String        @unique
-  email        String        @unique
+  username     String         @unique
+  email        String         @unique
   password     String
-  role         String        @default("user")
+  role         String         @default("user")
   profileImg   String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now()) @updatedAt
-  accessTokens AccessToken[] // One-to-many relation: a user can have multiple access tokens
-  resetTokens  ResetToken[]  // One-to-many relation: a user can have multiple reset tokens
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  accessTokens AccessTokens[] // One-to-many relation: a user can have multiple access tokens
+  resetTokens  ResetTokens[] // One-to-many relation: a user can have multiple reset tokens
+  Reports      Reports[]
 }
 
-model ResetToken {
+model ResetTokens {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   userId    Int
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId]) // Index for faster lookup
   @@index([token])
 }
 
-model VerifyToken {
+model VerifyTokens {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   email     String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model Reports {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String? 
+  date      DateTime
+  severity  String?
+  injuries  Boolean? @default(false)
+  reported  Boolean  @default(false)
+  description String?
+  frontCamera String
+  backCamera String
+  createdAt DateTime @default(now())
+  responded Boolean  @default(false)
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

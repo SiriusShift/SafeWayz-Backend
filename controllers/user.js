@@ -8,6 +8,7 @@ const {sendEmail} = require("../services/awsSES");
 
 const validateRegister = async (req, res, next) => {
   const { username, email } = req.body;
+  console.log(email)
 
   try {
     if (!email || !username) {
@@ -15,13 +16,13 @@ const validateRegister = async (req, res, next) => {
     }
 
     // Check if email already exists
-    const findEmail = await prisma.user.findUnique({ where: { email } });
+    const findEmail = await prisma.users.findUnique({ where: { email } });
     if (findEmail) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
     // Check if username already exists
-    const findUser = await prisma.user.findUnique({ where: { username } });
+    const findUser = await prisma.users.findUnique({ where: { username } });
     if (findUser) {
       return res.status(400).json({ message: "Username already exists" });
     }
@@ -35,11 +36,11 @@ const validateRegister = async (req, res, next) => {
         .join("")
         .slice(0, 6);
 
-      otpExists = await prisma.verifyToken.findFirst({ where: { token: otp } });
+      otpExists = await prisma.verifyTokens.findFirst({ where: { token: otp } });
     }
 
     // Store OTP with 10-minute expiration
-    await prisma.verifyToken.create({
+    await prisma.verifyTokens.create({
       data: {
         token: otp,
         email: email,
@@ -79,7 +80,7 @@ const validateRegister = async (req, res, next) => {
 const register = async (req, res, next) => {
   const { fullname, username, password, email, code } = req.body;
   try {
-    const findCode = await prisma.verifyToken.findFirst({
+    const findCode = await prisma.verifyTokens.findFirst({
       where: {
         token: code
       }
@@ -94,7 +95,7 @@ const register = async (req, res, next) => {
         message: "Code has expired",
       });
     }
-    const findEmail = await prisma.user.findUnique({
+    const findEmail = await prisma.users.findUnique({
       where: {
         email: email,
       },
@@ -104,7 +105,7 @@ const register = async (req, res, next) => {
         message: "Email already exists",
       });
     }
-    const findUser = await prisma.user.findUnique({
+    const findUser = await prisma.users.findUnique({
       where: {
         username: username,
       },
@@ -118,7 +119,7 @@ const register = async (req, res, next) => {
     
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         name: fullname,
         username: username,
@@ -130,7 +131,7 @@ const register = async (req, res, next) => {
 
     const accessToken = generateAccessToken(user);
 
-    await prisma.accessToken.create({
+    await prisma.accessTokens.create({
       data: {
         userId: user.id,
         tokenHash: accessToken,
@@ -150,7 +151,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { username, password } = req.body;
   try {
-    const findUser = await prisma.user.findUnique({
+    const findUser = await prisma.users.findUnique({
       where: {
         username: username,
       },
@@ -163,19 +164,19 @@ const login = async (req, res, next) => {
     const isPasswordValid = await bcrypt.compare(password, findUser.password);
     if (isPasswordValid) {
       const accessToken = generateAccessToken(findUser);
-      const existingSession = prisma.accessToken.findFirst({
+      const existingSession = prisma.accessTokens.findFirst({
         data: {
           userId: findUser.id,
         },
       });
       if (existingSession) {
-        await prisma.accessToken.deleteMany({
+        await prisma.accessTokens.deleteMany({
           where: {
             userId: findUser.id,
           },
         });
       }
-      await prisma.accessToken.create({
+      await prisma.accessTokens.create({
         data: {
           userId: findUser.id,
           tokenHash: accessToken,
@@ -208,7 +209,7 @@ const login = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    await prisma.accessToken.deleteMany({
+    await prisma.accessTokens.deleteMany({
       where: {
         userId: req.user.id,
         tokenHash: req.accessToken,
@@ -226,7 +227,7 @@ const logout = async (req, res, next) => {
 const sendResetPasswordCode = async (req, res, next) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         email: req.body.email,
       },
@@ -246,12 +247,12 @@ const sendResetPasswordCode = async (req, res, next) => {
         .join("")
         .slice(0, 6);
 
-      otpExists = await prisma.resetToken.findFirst({
+      otpExists = await prisma.resetTokens.findFirst({
         where: { token: otp },
       });
     }
 
-    await prisma.resetToken.create({
+    await prisma.resetTokens.create({
       data: {
         token: otp,
         userId: user.id,
@@ -287,7 +288,7 @@ const resetPassword = async (req, res, next) => {
   const otp = String(code);
   console.log(otp);
   try {
-    const resetToken = await prisma.resetToken.findFirst({
+    const resetToken = await prisma.resetTokens.findFirst({
       where: {
         token: otp,
       },
@@ -303,7 +304,7 @@ const resetPassword = async (req, res, next) => {
         message: "Code has expired",
       });
     }
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         id: resetToken.userId,
       },
@@ -320,7 +321,7 @@ const resetPassword = async (req, res, next) => {
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    await prisma.user.update({
+    await prisma.users.update({
       where: {
         id: user.id,
       },
@@ -328,7 +329,7 @@ const resetPassword = async (req, res, next) => {
         password: hashedPassword,
       },
     });
-    await prisma.resetToken.deleteMany({
+    await prisma.resetTokens.deleteMany({
       where: {
         userId: user.id,
       },
