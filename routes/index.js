@@ -1,8 +1,8 @@
 const UserRouter = require('./user')
 const ReportRouter = require('./report')
-const runRouters = (app) => {
+const runRouters = (app, io) => {
     app.use("/api/", UserRouter);
-    app.use("/api/reports", ReportRouter);
+    app.use("/api/reports", ReportRouter(io));
 }
 
 module.exports = {

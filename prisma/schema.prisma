@@ -62,6 +62,8 @@ model Reports {
   injuries  Boolean? @default(false)
   reported  Boolean  @default(false)
   description String?
+  latitude  Float  
+  longitude Float
   frontCamera String
   backCamera String
   createdAt DateTime @default(now())
