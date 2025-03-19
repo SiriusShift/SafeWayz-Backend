@@ -29,6 +29,7 @@ const submitReport = async (req, res, next, io) => {
                 ...(req.body.reported && {description: req.body.reported}),
             }
         })
+        console.log(newReport);
         io.emit("new_report", newReport);
         res.status(200).json({
             message: "Report submitted successfully"
@@ -41,7 +42,7 @@ const submitReport = async (req, res, next, io) => {
 const getReports = async (req, res, next) => {
     try {
         const oneHourAgo = new Date();
-        oneHourAgo.setUTCHours(oneHourAgo.getUTCHours() - 1); // Use UTC time
+        oneHourAgo.setUTCHours(oneHourAgo.getUTCHours() - 3); // Use UTC time
 
         const reports = await prisma.reports.findMany({
             where: {
