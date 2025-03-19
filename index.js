@@ -3,7 +3,7 @@ const cors = require("cors");
 const { runRouters } = require("./routes");
 const session = require("express-session");
 const { sessionConfig } = require("./config/sessionConfig");
-const initializeSocket = require("./websocket");
+const initializeSocket = require("./config/websocket");
 
 require("./config/runDb");
 
@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 
 const port = process.env.PORT || 5000; // Fallback to 3000 if not set
 const host = process.env.URL
-// app.listen(port, () => console.log(`Server running on port ${port}`));
-const server = app.listen(5000, host, () => console.log(`Server running on port ${port} and host ${host}`));
+const server = app.listen(port, () => console.log(`Server running on port ${port}`));
+// const server = app.listen(5000, host, () => console.log(`Server running on port ${port} and host ${host}`));
 const io = initializeSocket(server)
 runRouters(app, io);

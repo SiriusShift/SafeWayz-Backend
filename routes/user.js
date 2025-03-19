@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const asyncHandler = require("../middleware/asyncHandler"); // Import the middleware
+const asyncHandler = require("../utils/asyncHandler"); // Import the middleware
 const {
   register,
   login,
