@@ -8,7 +8,7 @@ const s3 = new S3Client({
   region: process.env.AWS_REGION,
 });
 
-const uploadBase64ToS3 = async (base64Image, fileName) => {
+const uploadBase64ToS3 = async (base64Image, fileName, folder) => {
   try {
     const correctedBase64 = `data:image/png;base64,${base64Image}`;
     if (!correctedBase64 || typeof correctedBase64 !== "string") {
@@ -31,7 +31,7 @@ const uploadBase64ToS3 = async (base64Image, fileName) => {
     // Upload parameters
     const uploadParams = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: `uploads/${fileName}`,
+      Key: `${folder}/${fileName}`,
       Body: imageBuffer,
       ContentType: fileType,
       ACL: "public-read", // Optional: makes the image public
@@ -43,7 +43,7 @@ const uploadBase64ToS3 = async (base64Image, fileName) => {
     console.log("S3 Upload Success:", response);
 
     // Return the S3 URL
-    return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${fileName}`;
+    return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${folder}/${fileName}`;
   } catch (error) {
     console.error("S3 Upload Error:", error.message);
     throw new Error("Failed to upload image to S3");

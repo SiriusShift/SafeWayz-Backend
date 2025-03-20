@@ -10,8 +10,8 @@ const submitReport = async (req, res, next, io) => {
                 message: "Image is required"
             })
         }
-        const back = await uploadBase64ToS3(backImage, `back-${Date.now()}-${req.user.id}`)
-        const front = await uploadBase64ToS3(frontImage, `front-${Date.now()}-${req.user.id}`)
+        const back = await uploadBase64ToS3(backImage, `back-${Date.now()}-${req.user.id}`, "reports")
+        const front = await uploadBase64ToS3(frontImage, `front-${Date.now()}-${req.user.id}` , "reports")
         const newReport = await prisma.reports.create({
             data: {
                 frontCamera: front,

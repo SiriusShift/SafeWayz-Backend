@@ -5,6 +5,7 @@ const { generateAccessToken } = require("../utils/customFunction");
 const { Resend } = require("resend");
 const crypto = require("crypto");
 const {sendEmail} = require("../services/awsSES");
+const { uploadBase64ToS3 } = require("../services/awsS3");
 
 const validateRegister = async (req, res, next) => {
   const { username, email } = req.body;
@@ -342,6 +343,71 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+const updateUserDetails = async (req, res, next) => {
+  try {
+    const { fullname, username, email, profile } = req.body;
+
+    // Ensure req.user.id is an integer
+    const userId = Number(req.user.id);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: userId }, // id should be an integer
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Check if username already exists (excluding current user)
+    const findUser = await prisma.users.findFirst({
+      where: {
+        username,
+        id: { not: userId }, // `not` should be used in `findFirst`
+      },
+    });
+
+    // Check if email already exists (excluding current user)
+    const findEmail = await prisma.users.findFirst({
+      where: {
+        email,
+        id: { not: userId },
+      },
+    });
+
+    if (findUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+    if (findEmail) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    // Example of handling profile image upload (assuming `uploadBase64ToS3` is defined)
+    const profileImg = profile ? await uploadBase64ToS3(profile, `${username}_profileImg_${Date.now()}`, "profileImgs") : user.profileImg;
+
+    // Update user details
+    const updatedUser = await prisma.users.update({
+      where: { id: userId },
+      data: {
+        name: fullname,
+        username,
+        email,
+        profileImg, // Assuming `profile` contains a valid URL
+      },
+    });
+
+    console.log(updatedUser);
+
+    return res.status(200).json({ message: "User updated successfully", user: updatedUser });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 module.exports = {
   register,
   login,
@@ -349,4 +415,5 @@ module.exports = {
   sendResetPasswordCode,
   resetPassword,
   validateRegister,
+  updateUserDetails
 };
