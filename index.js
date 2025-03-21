@@ -21,9 +21,9 @@ app.get("/", (req, res) => {
 
 const port = process.env.PORT || 5000; // Fallback to 3000 if not set
 const host = process.env.URL;
-const server = app.listen(port, () => console.log(`Server running on port ${port}`));
-// const server = app.listen(5000, host, () =>
-//   console.log(`Server running on port ${port} and host ${host}`)
-// );
+// const server = app.listen(port, () => console.log(`Server running on port ${port}`));
+const server = app.listen(5000, host, () =>
+  console.log(`Server running on port ${port} and host ${host}`)
+);
 const io = initializeSocket(server);
 runRouters(app, io);
