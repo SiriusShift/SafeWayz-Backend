@@ -21,7 +21,7 @@ const encryptString = (data) => {
 
 const generateAccessToken = (user) => {
   return jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
+    { id: user.id, role: user.role },
     process.env.JWT_SECRET
   );
 };

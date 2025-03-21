@@ -8,6 +8,7 @@ const {
   resetPassword,
   validateRegister,
   updateUserDetails,
+  refetchUserDetails,
 } = require("../controllers/user");
 
 const {
@@ -24,5 +25,5 @@ router.route("/logout").post(authenticateToken, logout);
 router.route("/forgot-password").post(sendResetPasswordCode);
 router.route("/reset-password").post(resetPassword);
 router.route("/updateUserDetails").patch(authenticateToken, updateUserDetails);
-
+router.route("/getUserDetails").get(authenticateToken, refetchUserDetails);
 module.exports = router;

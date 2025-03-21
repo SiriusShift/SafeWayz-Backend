@@ -127,6 +127,7 @@ const register = async (req, res, next) => {
         email: email,
         password: hashedPassword,
         role: "user",
+        profileImg: "https://pathalert-bucket.s3.ap-southeast-1.amazonaws.com/default.png",
       },
     });
 
@@ -136,6 +137,7 @@ const register = async (req, res, next) => {
       data: {
         userId: user.id,
         tokenHash: accessToken,
+        deviceId: req.headers["user-agent"] || "unknown_device",
       },
     });
 
@@ -151,60 +153,54 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   const { username, password } = req.body;
+  const deviceId = req.headers["user-agent"] || "unknown_device";
+
   try {
-    const findUser = await prisma.users.findUnique({
-      where: {
-        username: username,
+    // Find user by username
+    const findUser = await prisma.users.findUnique({ where: { username } });
+    if (!findUser) {
+      return res.status(400).json({ message: "User does not exist" });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, findUser.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Username or password is incorrect" });
+    }
+
+    // Generate new access token
+    const accessToken = generateAccessToken(findUser);
+
+    // Remove old access tokens for this user and device
+    await prisma.accessTokens.deleteMany({
+      where: { userId: findUser.id, deviceId },
+    });
+
+    // Store new access token
+    await prisma.accessTokens.create({
+      data: {
+        userId: findUser.id,
+        tokenHash: accessToken,
+        deviceId,
       },
     });
-    if (!findUser) {
-      return res.status(400).json({
-        message: "User does not exist",
-      });
-    }
-    const isPasswordValid = await bcrypt.compare(password, findUser.password);
-    if (isPasswordValid) {
-      const accessToken = generateAccessToken(findUser);
-      const existingSession = prisma.accessTokens.findFirst({
-        data: {
-          userId: findUser.id,
-        },
-      });
-      if (existingSession) {
-        await prisma.accessTokens.deleteMany({
-          where: {
-            userId: findUser.id,
-          },
-        });
-      }
-      await prisma.accessTokens.create({
-        data: {
-          userId: findUser.id,
-          tokenHash: accessToken,
-        },
-      });
 
-      req.user = findUser;
+    return res.status(200).json({
+      message: "User logged in successfully",
+      user: {
+        id: findUser.id,
+        name: findUser.name,
+        username: findUser.username,
+        email: findUser.email,
+        role: findUser.role,
+        profileImg: findUser.profileImg,
+      },
+      accessToken,
+    });
 
-      return res.status(200).json({
-        message: "User logged in successfully",
-        user: {
-          id: findUser.id,
-          name: findUser.name,
-          username: findUser.username,
-          email: findUser.email,
-          role: findUser.role,
-          profileImg: findUser.profileImg,
-        },
-        accessToken: accessToken,
-      });
-    } else {
-      return res.status(400).json({
-        message: "Username or password is incorrect",
-      });
-    }
   } catch (err) {
-    console.log(err);
+    console.error("Error during login:", err);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -347,6 +343,8 @@ const updateUserDetails = async (req, res, next) => {
   try {
     const { fullname, username, email, profile } = req.body;
 
+    console.log("test")
+
     // Ensure req.user.id is an integer
     const userId = Number(req.user.id);
     if (isNaN(userId)) {
@@ -407,6 +405,22 @@ const updateUserDetails = async (req, res, next) => {
   }
 };
 
+const refetchUserDetails = async (req,res,next) => {
+  try{
+    const findUser = await prisma.users.findUnique({
+      where: {
+        id: req.user.id,
+      },
+    })
+    if(!findUser) {
+      return res.status(403).json({ message: "User doesn't exist" });
+    }
+    return res.status(200).json({ user: findUser, message: "User refetched successfully" });
+  }catch(err){
+    console.log(err);
+  }
+}
+
 
 module.exports = {
   register,
@@ -415,5 +429,6 @@ module.exports = {
   sendResetPasswordCode,
   resetPassword,
   validateRegister,
-  updateUserDetails
+  updateUserDetails,
+  refetchUserDetails
 };

@@ -13,8 +13,9 @@ datasource db {
 model AccessTokens {
   id        Int      @id @default(autoincrement()) // Unique ID
   tokenHash String   @unique // Hashed refresh token
-  userId    Int      @unique // Foreign key linking to User model
+  userId    Int     
   createdAt DateTime @default(now()) // Timestamp
+  deviceId  String
   user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade) // One-to-One relation with User
 }
 
